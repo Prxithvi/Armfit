@@ -1,0 +1,10 @@
+# ArmFit's core CLI/analysis/report/dashboard pipeline is stdlib-only —
+# no install step needed. This is intentional so it runs on any machine
+# (including a Ryzen 7 dev laptop) with zero setup.
+#
+# Optional, only needed for REAL profiling runs (not required for --mode dev):
+#   executorch          # real ExecuTorch model loading/profiling
+#   torch                # required by executorch
+#
+# Install with:
+#   pip install executorch torch

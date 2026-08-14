@@ -1,0 +1,3 @@
+ARMFIT_DEMO_PTE_PLACEHOLDER
+This is a stand-in for a real ExecuTorch .pte file so the CLI is runnable out of the box.
+Replace with a real exported .pte to profile an actual model.
