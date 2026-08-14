@@ -1,0 +1,199 @@
+{
+  "model": "tinycnn.pte",
+  "mode": "dev",
+  "generated_at": "2026-08-14T14:51:24.289353+00:00",
+  "measured": false,
+  "baseline": {
+    "label": "SME2 OFF",
+    "total_time_ms": 210.29,
+    "categories": [
+      {
+        "category": "Conv2D",
+        "time_ms": 87.73,
+        "pct": 41.7,
+        "op_count": 2
+      },
+      {
+        "category": "DataMovement",
+        "time_ms": 44.53,
+        "pct": 21.2,
+        "op_count": 3
+      },
+      {
+        "category": "GEMM/Linear",
+        "time_ms": 34.19,
+        "pct": 16.3,
+        "op_count": 3
+      },
+      {
+        "category": "Elementwise",
+        "time_ms": 25.3,
+        "pct": 12.0,
+        "op_count": 3
+      },
+      {
+        "category": "Normalization",
+        "time_ms": 13.31,
+        "pct": 6.3,
+        "op_count": 2
+      },
+      {
+        "category": "Other",
+        "time_ms": 5.22,
+        "pct": 2.5,
+        "op_count": 3
+      }
+    ]
+  },
+  "sme2": {
+    "label": "SME2 ON (projected)",
+    "total_time_ms": 130.25,
+    "categories": [
+      {
+        "category": "DataMovement",
+        "time_ms": 57.22,
+        "pct": 43.9,
+        "op_count": 3
+      },
+      {
+        "category": "Conv2D",
+        "time_ms": 25.89,
+        "pct": 19.9,
+        "op_count": 2
+      },
+      {
+        "category": "Elementwise",
+        "time_ms": 22.07,
+        "pct": 16.9,
+        "op_count": 3
+      },
+      {
+        "category": "Normalization",
+        "time_ms": 12.2,
+        "pct": 9.4,
+        "op_count": 2
+      },
+      {
+        "category": "GEMM/Linear",
+        "time_ms": 8.39,
+        "pct": 6.4,
+        "op_count": 3
+      },
+      {
+        "category": "Other",
+        "time_ms": 4.47,
+        "pct": 3.4,
+        "op_count": 3
+      }
+    ]
+  },
+  "bottlenecks": [
+    {
+      "rank": 1,
+      "category": "Conv2D",
+      "time_ms": 87.73,
+      "pct": 41.7,
+      "impact": "Very High",
+      "op_count": 2
+    },
+    {
+      "rank": 2,
+      "category": "DataMovement",
+      "time_ms": 44.53,
+      "pct": 21.2,
+      "impact": "High",
+      "op_count": 3
+    },
+    {
+      "rank": 3,
+      "category": "GEMM/Linear",
+      "time_ms": 34.19,
+      "pct": 16.3,
+      "impact": "Medium",
+      "op_count": 3
+    },
+    {
+      "rank": 4,
+      "category": "Elementwise",
+      "time_ms": 25.3,
+      "pct": 12.0,
+      "impact": "Medium",
+      "op_count": 3
+    },
+    {
+      "rank": 5,
+      "category": "Normalization",
+      "time_ms": 13.31,
+      "pct": 6.3,
+      "impact": "Low",
+      "op_count": 2
+    },
+    {
+      "rank": 6,
+      "category": "Other",
+      "time_ms": 5.22,
+      "pct": 2.5,
+      "impact": "Low",
+      "op_count": 3
+    }
+  ],
+  "comparison": {
+    "rows": [
+      {
+        "category": "Conv2D",
+        "off_ms": 87.73,
+        "on_ms": 25.89,
+        "delta_ms": -61.84,
+        "delta_pct": -70.5
+      },
+      {
+        "category": "DataMovement",
+        "off_ms": 44.53,
+        "on_ms": 57.22,
+        "delta_ms": 12.69,
+        "delta_pct": 28.5
+      },
+      {
+        "category": "GEMM/Linear",
+        "off_ms": 34.19,
+        "on_ms": 8.39,
+        "delta_ms": -25.8,
+        "delta_pct": -75.5
+      },
+      {
+        "category": "Elementwise",
+        "off_ms": 25.3,
+        "on_ms": 22.07,
+        "delta_ms": -3.23,
+        "delta_pct": -12.8
+      },
+      {
+        "category": "Normalization",
+        "off_ms": 13.31,
+        "on_ms": 12.2,
+        "delta_ms": -1.11,
+        "delta_pct": -8.3
+      },
+      {
+        "category": "Other",
+        "off_ms": 5.22,
+        "on_ms": 4.47,
+        "delta_ms": -0.75,
+        "delta_pct": -14.4
+      }
+    ],
+    "baseline_total_ms": 210.29,
+    "sme2_total_ms": 130.25,
+    "overall_speedup_pct": 38.1,
+    "top_bottleneck_before": "Conv2D",
+    "top_bottleneck_after": "DataMovement",
+    "measured": false
+  },
+  "insights": [
+    "Conv2D consumes 41.7% of baseline runtime and is your largest bottleneck before optimization.",
+    "SME2 reduced the cost of Conv2D, which shifted the largest remaining bottleneck to DataMovement. This is a projected (dev-mode estimate) comparison \u2014 investigate DataMovement next.",
+    "Overall latency changed by 38.1% (faster) with SME2 enabled (projected (dev-mode estimate)): 210.29 ms -> 130.25 ms.",
+    "DataMovement grew from 44.53 ms to 57.22 ms after SME2 (projected (dev-mode estimate)) \u2014 its relative share of runtime increased and it's now a bigger optimization target than before.",
+    "Note: these SME2 numbers are a dev-mode projection based on Arm's published category-level speedup ranges, not a real hardware measurement. Run with --mode arm on Arm SME2-capable hardware for real numbers before the final demo."
+  ]
+}

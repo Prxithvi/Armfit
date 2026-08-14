@@ -1,6 +1,6 @@
 """
 Produces the SME2-ON side of the comparison (and, in --mode arm, the
-measured baseline too, since Arm's real pipeline produces both experiments
+measured baseline too, since Arm's real pipeline produces both experimentsv
 together).
 
 --mode dev  (works on Ryzen 7 / any x86 machine)

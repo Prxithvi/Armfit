@@ -1,64 +1,9 @@
-"""
-armfit/report/export.py — Enhanced
-
-Adds three things on top of the original HTML_TEMPLATE:
-
-  1. sanitize_unicode() — strips stray Unicode bullets/arrows/checkmarks
-     from any text you substitute into the template (bottleneck_rows,
-     comparison_rows, insight_items, etc.) so they render as clean ASCII
-     instead of mystery glyphs or crashing on Windows CP1252.
-
-  2. render_report() — does Template.substitute(), sanitizes the result,
-     and writes it with explicit UTF-8 encoding (fixes the Windows
-     CP1252 crash from `path.write_text(html)`).
-
-  3. build_insight_items() — helper that appends the "SME2 numbers are
-     projected, not measured" honesty note automatically whenever mode
-     isn't real Arm hardware, so it can never be forgotten before a demo.
-"""
-
-from pathlib import Path
-from string import Template
-import re
-
-# ---------------------------------------------------------------------------
-# 1. Unicode -> ASCII sanitizer
-# ---------------------------------------------------------------------------
-UNICODE_REPLACEMENTS = {
-    "\u2192": "->",   # → RIGHTWARDS ARROW
-    "\u2190": "<-",   # ← LEFTWARDS ARROW
-    "\u2022": "-",    # • BULLET
-    "\u25B6": "-",    # ▶ BLACK RIGHT-POINTING TRIANGLE
-    "\u25CF": "-",    # ● BLACK CIRCLE
-    "\u2713": "[OK]", # ✓ CHECK MARK
-    "\u2714": "[OK]", # ✔ HEAVY CHECK MARK
-    "\u2717": "[X]",  # ✗ BALLOT X
-    "\u2718": "[X]",  # ✘ HEAVY BALLOT X
-    "\u2026": "...",  # … HORIZONTAL ELLIPSIS
-    "\u2018": "'",    # ' LEFT SINGLE QUOTATION MARK
-    "\u2019": "'",    # ' RIGHT SINGLE QUOTATION MARK
-    "\u201C": '"',    # " LEFT DOUBLE QUOTATION MARK
-    "\u201D": '"',    # " RIGHT DOUBLE QUOTATION MARK
-    "\u2013": "-",    # – EN DASH
-    "\u2014": "--",   # — EM DASH
-}
-_UNICODE_PATTERN = re.compile("|".join(re.escape(k) for k in UNICODE_REPLACEMENTS))
-
-
-def sanitize_unicode(text: str) -> str:
-    """Replace known problem Unicode characters with safe ASCII equivalents."""
-    return _UNICODE_PATTERN.sub(lambda m: UNICODE_REPLACEMENTS[m.group(0)], text)
-
-
-# ---------------------------------------------------------------------------
-# 2. HTML template (unchanged from your original — kept in full)
-# ---------------------------------------------------------------------------
-HTML_TEMPLATE = Template("""<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ArmFit Report — $model_name</title>
+<title>ArmFit Report � tinycnn.pte</title>
 <style>
   :root {
     --bg: #08090d;
@@ -214,143 +159,93 @@ HTML_TEMPLATE = Template("""<!DOCTYPE html>
   <div class="hero">
     <div class="hero-left">
       <h1>ArmFit Performance Report</h1>
-      <p class="sub">Model: <b>$model_name</b> &nbsp;·&nbsp; Generated $timestamp &nbsp;·&nbsp; Mode: <b>$mode</b></p>
+      <p class="sub">Model: <b>tinycnn.pte</b> &nbsp;�&nbsp; Generated 2026-08-14 14:51:24 UTC &nbsp;�&nbsp; Mode: <b>dev</b></p>
     </div>
-    <span class="badge $measured_class"><span class="dot"></span>$measured_text</span>
+    <span class="badge projected"><span class="dot"></span>PROJECTED (dev-mode estimate)</span>
   </div>
 
   <div class="cards">
     <div class="card">
       <div class="label">Baseline (SME2 OFF)</div>
-      <div class="value">$baseline_ms<span class="unit">ms</span></div>
+      <div class="value">210.29<span class="unit">ms</span></div>
     </div>
     <div class="card">
       <div class="label">SME2 ON</div>
-      <div class="value accent">$sme2_ms<span class="unit">ms</span></div>
+      <div class="value accent">130.25<span class="unit">ms</span></div>
     </div>
     <div class="card gauge-card">
-      <div class="gauge" style="--pct:$speedup_pct"><span>$speedup_pct%</span></div>
+      <div class="gauge" style="--pct:38.1"><span>38.1%</span></div>
       <div class="gauge-text">
         <div class="label">Improvement</div>
         <div class="value accent" style="font-size:20px;">Faster</div>
-        <div class="hint">$baseline_ms ms &rarr; $sme2_ms ms</div>
+        <div class="hint">210.29 ms &rarr; 130.25 ms</div>
       </div>
     </div>
   </div>
 
   <section>
     <h2>Top Bottlenecks (baseline)</h2>
-    $bottleneck_rows
+    
+        <div class="bn-row">
+          <div class="bn-rank">#1</div>
+          <div class="bn-name">Conv2D</div>
+          <div class="bn-bar-track"><div class="bn-bar-fill" style="width:41.7%"></div></div>
+          <div class="bn-pct">41.7%</div>
+          <div class="bn-impact impact-very-high">Very High</div>
+        </div>
+        <div class="bn-row">
+          <div class="bn-rank">#2</div>
+          <div class="bn-name">DataMovement</div>
+          <div class="bn-bar-track"><div class="bn-bar-fill" style="width:21.2%"></div></div>
+          <div class="bn-pct">21.2%</div>
+          <div class="bn-impact impact-high">High</div>
+        </div>
+        <div class="bn-row">
+          <div class="bn-rank">#3</div>
+          <div class="bn-name">GEMM/Linear</div>
+          <div class="bn-bar-track"><div class="bn-bar-fill" style="width:16.3%"></div></div>
+          <div class="bn-pct">16.3%</div>
+          <div class="bn-impact impact-medium">Medium</div>
+        </div>
+        <div class="bn-row">
+          <div class="bn-rank">#4</div>
+          <div class="bn-name">Elementwise</div>
+          <div class="bn-bar-track"><div class="bn-bar-fill" style="width:12.0%"></div></div>
+          <div class="bn-pct">12.0%</div>
+          <div class="bn-impact impact-medium">Medium</div>
+        </div>
+        <div class="bn-row">
+          <div class="bn-rank">#5</div>
+          <div class="bn-name">Normalization</div>
+          <div class="bn-bar-track"><div class="bn-bar-fill" style="width:6.3%"></div></div>
+          <div class="bn-pct">6.3%</div>
+          <div class="bn-impact impact-low">Low</div>
+        </div>
+        <div class="bn-row">
+          <div class="bn-rank">#6</div>
+          <div class="bn-name">Other</div>
+          <div class="bn-bar-track"><div class="bn-bar-fill" style="width:2.5%"></div></div>
+          <div class="bn-pct">2.5%</div>
+          <div class="bn-impact impact-low">Low</div>
+        </div>
   </section>
 
   <section>
-    <h2>SME2 OFF vs ON — Category Comparison</h2>
+    <h2>SME2 OFF vs ON � Category Comparison</h2>
     <table>
       <tr><th>Category</th><th>OFF (ms)</th><th>ON (ms)</th><th>&Delta; ms</th><th>&Delta; %</th></tr>
-      $comparison_rows
+      <tr><td>Conv2D</td><td>87.73</td><td>25.89</td><td class="neg">-61.84</td><td class="neg">-70.5%</td></tr><tr><td>DataMovement</td><td>44.53</td><td>57.22</td><td class="pos">+12.69</td><td class="pos">+28.5%</td></tr><tr><td>GEMM/Linear</td><td>34.19</td><td>8.39</td><td class="neg">-25.8</td><td class="neg">-75.5%</td></tr><tr><td>Elementwise</td><td>25.3</td><td>22.07</td><td class="neg">-3.23</td><td class="neg">-12.8%</td></tr><tr><td>Normalization</td><td>13.31</td><td>12.2</td><td class="neg">-1.11</td><td class="neg">-8.3%</td></tr><tr><td>Other</td><td>5.22</td><td>4.47</td><td class="neg">-0.75</td><td class="neg">-14.4%</td></tr>
     </table>
   </section>
 
   <section>
     <h2>What This Means</h2>
     <ul class="insights">
-      $insight_items
+      <li>Conv2D consumes 41.7% of baseline runtime and is your largest bottleneck before optimization.</li><li>SME2 reduced the cost of Conv2D, which shifted the largest remaining bottleneck to DataMovement. This is a projected (dev-mode estimate) comparison � investigate DataMovement next.</li><li>Overall latency changed by 38.1% (faster) with SME2 enabled (projected (dev-mode estimate)): 210.29 ms -> 130.25 ms.</li><li>DataMovement grew from 44.53 ms to 57.22 ms after SME2 (projected (dev-mode estimate)) � its relative share of runtime increased and it's now a bigger optimization target than before.</li><li class="note">Note: these SME2 numbers are a dev-mode projection based on Arm's published category-level speedup ranges, not a real hardware measurement. Run with --mode arm on Arm SME2-capable hardware for real numbers before the final demo.</li>
     </ul>
   </section>
 
-  <footer>ArmFit — from profiler data to performance decisions.</footer>
+  <footer>ArmFit � from profiler data to performance decisions.</footer>
 </div>
 </body>
 </html>
-""")
-
-
-# ---------------------------------------------------------------------------
-# 3. Honesty note — auto-appended to insights when mode isn't real hardware
-# ---------------------------------------------------------------------------
-PROJECTED_MODES = {"dev", "sim", "projected", "stub"}
-
-HONESTY_NOTE_LI = (
-    '<li class="note">Note: SME2 ON numbers shown here are projected from '
-    "Arm's published speedup ranges. Real hardware measurement on Arm-mode "
-    "is the next step in this project's roadmap.</li>"
-)
-
-
-def build_insight_items(insight_lis: str, mode: str) -> str:
-    """Take your already-built <li>...</li> insight items and append the
-    honesty-note <li> automatically when running in a projected/dev/sim
-    mode. Safe to call even if the note is already present (won't duplicate).
-    """
-    if mode.lower() in PROJECTED_MODES and "SME2 ON numbers shown here are projected" not in insight_lis:
-        insight_lis = insight_lis + "\n      " + HONESTY_NOTE_LI
-    return insight_lis
-
-
-# ---------------------------------------------------------------------------
-# 4. Safe render + write
-# ---------------------------------------------------------------------------
-def render_report(*, path: Path, model_name: str, timestamp: str, mode: str,
-                   baseline_ms: str, sme2_ms: str, speedup_pct: str,
-                   bottleneck_rows: str, comparison_rows: str, insight_items: str) -> None:
-    """Fill the template, sanitize Unicode, inject the honesty note, and
-    write the report with explicit UTF-8 encoding.
-
-    Use this instead of manually calling HTML_TEMPLATE.substitute(...) and
-    path.write_text(html) — it fixes the Windows CP1252 crash and the
-    stray-Unicode-character problem in one place.
-    """
-    is_measured = mode.lower() not in PROJECTED_MODES
-    insight_items = build_insight_items(insight_items, mode)
-
-    html = HTML_TEMPLATE.substitute(
-        model_name=sanitize_unicode(model_name),
-        timestamp=sanitize_unicode(timestamp),
-        mode=sanitize_unicode(mode),
-        measured_class="measured" if is_measured else "projected",
-        measured_text="Measured" if is_measured else "Projected",
-        baseline_ms=baseline_ms,
-        sme2_ms=sme2_ms,
-        speedup_pct=speedup_pct,
-        bottleneck_rows=sanitize_unicode(bottleneck_rows),
-        comparison_rows=sanitize_unicode(comparison_rows),
-        insight_items=sanitize_unicode(insight_items),
-    )
-
-    path.write_text(html, encoding="utf-8")
-
-
-# ---------------------------------------------------------------------------
-# Example usage / smoke test
-# ---------------------------------------------------------------------------
-if __name__ == "__main__":
-    bottleneck_rows = """
-      <div class="bn-row">
-        <div class="bn-rank">1</div>
-        <div class="bn-name">Conv2D</div>
-        <div class="bn-bar-track"><div class="bn-bar-fill" style="width:72%"></div></div>
-        <div class="bn-pct">72%</div>
-        <div class="bn-impact impact-very-high">\u2192 Very High</div>
-      </div>
-    """
-    comparison_rows = """
-      <tr><td>Conv2D</td><td>30.1</td><td>9.8</td><td class="neg">-20.3</td><td class="neg">-67%</td></tr>
-    """
-    insight_items = """
-      <li>\u2022 SME2 cuts Conv2D latency by roughly 67% in this projection.</li>
-      <li>\u2713 Quantization to int8 already applied before profiling.</li>
-    """
-
-    render_report(
-        path=Path("armfit-report-demo.html"),
-        model_name="tinycnn.pte",
-        timestamp="2026-08-14 10:32",
-        mode="dev",
-        baseline_ms="42.0",
-        sme2_ms="13.6",
-        speedup_pct="68",
-        bottleneck_rows=bottleneck_rows,
-        comparison_rows=comparison_rows,
-        insight_items=insight_items,
-    )
-    print("Wrote sanitized, UTF-8, honesty-noted report to armfit-report-demo.html")
