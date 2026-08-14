@@ -61,26 +61,42 @@ so the rest of the pipeline is fully testable either way.
 
 ## Getting REAL SME2 numbers
 
-You need actual Arm SME2-capable hardware. Options, cheapest first:
+You need actual Arm SME2-capable hardware. Arm's `sme-executorch-profiling`
+kit only ships build presets for **macOS (Apple Silicon)** and **Android**
+— there is no Linux/Graviton4 preset out of the box, so an EC2 Graviton4
+instance won't work with this kit as-is. Options:
 
-1. **AWS Graviton4 EC2 instance** — Arm's own ExecuTorch 1.0 benchmarks
-   were run on Graviton4 with SME2 via KleidiAI, so this is a known-good,
-   judge-defensible environment. Spin one up, `git clone` this repo there.
-2. A recent flagship Android phone (Cortex-X4 / Arm C1-class chip).
+1. **Apple Silicon Mac** (M-series) — run the kit's `mac_pipeline.py`.
+2. A recent flagship Android phone (Cortex-X4 / Arm C1-class chip) — run
+   the kit's `android_pipeline.py`.
 
-Then:
+One-time setup on whichever machine you use:
 
 ```bash
-git clone https://github.com/ArmDeveloperEcosystem/sme-executorch-profiling
-export ARMFIT_SME_REPO=/path/to/sme-executorch-profiling
+git clone https://github.com/ArmDeveloperEcosystem/sme-executorch-profiling.git executorch_sme2_kit
+cd executorch_sme2_kit
+bash model_profiling/scripts/setup_repo.sh
+bash model_profiling/scripts/build_runners.sh
+```
+
+Then, after exporting your model and running the platform pipeline
+(`mac_pipeline.py` or `android_pipeline.py`) to produce results:
+
+```bash
+export ARMFIT_SME_KIT=/path/to/executorch_sme2_kit
 python3 -m armfit my_model.pte --mode arm --serve
 ```
 
-`armfit/runner/arm_sme2_runner.py::run_arm` has a `TODO` where you wire in
-the actual calls to that repo's scripts and parse its ETDump/CSV output —
-this is intentionally left as your Hour 0–2 "kill switch" task from the
-project plan: prove `.pte → Arm profiling repo → SME2 ON/OFF → ETDump →
-CSV/JSON` works manually first, then port the parsing logic in.
+`armfit/runner/arm_sme2_runner.py::run_arm` reads the resulting
+`analysis_summary.json` (via `analyze_results.py`) for both the
+`sme2_off` and `sme2_on` experiment dirs and turns them into a real,
+`measured=True` ArmFit report. This part is already wired up and working.
+
+Only true per-operator granularity is left as an optional stretch goal:
+today each category is one aggregate stat; parsing the
+`*_exec_ops_stats.csv` file that `analyze_results.py` also produces would
+give per-operator detail instead. Not required for a working `--mode arm`
+run.
 
 ## Project layout
 
